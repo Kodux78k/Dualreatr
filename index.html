@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="tesseract">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HUB1 — UNO/DUAL/TRINITY</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0a0f14" />
+
+    <!-- (opcional) Babel standalone para transpilar .jsx que você subir localmente -->
+    <script defer src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind opcional via CDN p/ protótipo (em produção use PostCSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: {} } };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[#0a0f14] text-[#d7d7d7]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
