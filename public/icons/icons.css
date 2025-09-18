@@ -1,0 +1,61 @@
+:root{
+  /* ajuste caso você troque de sprite: */
+  --hub1-sprite-url: url('/public/icons/hub1-sprite.png');
+  --cols: 8; /* colunas do sprite */
+  --rows: 12;/* linhas   do sprite */
+}
+
+/* base do ícone */
+.hub1-ico{
+  --w: 28px;             /* tamanho padrão */
+  --h: 28px;
+  --ix: 0;               /* índice da coluna  (0..cols-1) */
+  --iy: 0;               /* índice da linha   (0..rows-1) */
+  width: var(--w);
+  height: var(--h);
+  display: inline-block;
+  background-image: var(--hub1-sprite-url);
+  background-repeat: no-repeat;
+  background-size: calc(var(--cols) * 100%) calc(var(--rows) * 100%);
+  background-position:
+    calc(var(--ix) * (100% / (var(--cols) - 1)))
+    calc(var(--iy) * (100% / (var(--rows) - 1)));
+  border-radius: 10px;
+}
+.hub1-ico.xs{ --w:18px; --h:18px }
+.hub1-ico.sm{ --w:22px; --h:22px }
+.hub1-ico.md{ --w:28px; --h:28px }
+.hub1-ico.lg{ --w:40px; --h:40px }
+
+/* mapeamento dos ícones (exemplos) */
+/* linha 0 */
+.ico-logo        { --ix:0; --iy:0 }
+.ico-uno         { --ix:1; --iy:0 }
+.ico-dual        { --ix:2; --iy:0 }
+.ico-trinity     { --ix:3; --iy:0 }
+.ico-fab         { --ix:4; --iy:0 }
+.ico-upload      { --ix:5; --iy:0 }
+.ico-toggle-on   { --ix:6; --iy:0 }
+.ico-toggle-off  { --ix:7; --iy:0 }
+
+/* linha 1 */
+.ico-play        { --ix:0; --iy:1 }
+.ico-pause       { --ix:1; --iy:1 }
+.ico-prev        { --ix:2; --iy:1 }
+.ico-next        { --ix:3; --iy:1 }
+.ico-check       { --ix:4; --iy:1 }
+.ico-close       { --ix:5; --iy:1 }
+.ico-back        { --ix:6; --iy:1 }
+.ico-settings    { --ix:7; --iy:1 }
+
+/* linha 2 */
+.ico-badge-1     { --ix:0; --iy:2 }
+.ico-badge-2     { --ix:1; --iy:2 }
+.ico-badge-3     { --ix:2; --iy:2 }
+.ico-card        { --ix:3; --iy:2 }
+.ico-img         { --ix:4; --iy:2 }
+.ico-html        { --ix:5; --iy:2 }
+.ico-react       { --ix:6; --iy:2 }
+.ico-json        { --ix:7; --iy:2 }
+
+/* ...segue o padrão; ajuste os índices conforme seu sprite */
