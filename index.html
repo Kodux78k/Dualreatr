@@ -108,6 +108,13 @@
     .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
     @media (max-width: 860px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)) } }
     @media (max-width: 560px) { .cards { grid-template-columns: 1fr } }
+
+    /* Ocultar o menu de opções (Apps, Stack, Brain, Revo) na Home quando apenas a bola dos arquétipos deve aparecer */
+    /* Hide the UNO menu cards and the UNO info card on home (show only archetype circle) */
+    #v-home .cards,
+    #v-home #unoCard {
+      display: none;
+    }
     .card { background: var(--surface); border: var(--bd); border-radius: var(--r2); box-shadow: var(--shadow); padding: 12px; display: flex; gap: 10px; align-items: center; position: relative }
     .card.fx-trans:hover { box-shadow: 0 16px 40px rgba(0,0,0,.5) }
     .ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.06); border: var(--bd) }
@@ -265,7 +272,7 @@
           <div id="greetingCard" class="card fx-trans fx-lift" style="display:none">
             <div id="greetingMsg" style="font-weight:800"></div>
           </div>
-        <div class="card fx-trans fx-lift">
+        <div id="unoCard" class="card fx-trans fx-lift" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%">
             <div>
               <div style="font-weight:900;letter-spacing:.08em">UNO • foco e velocidade</div>
@@ -283,11 +290,11 @@
             <div class="arch-dotlogo" title="arquétipo ativo"></div>
             <div class="arch-switcher">
               <button class="btn fx-trans fx-press ring" id="arch-prev" title="Anterior">
-<img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/chevron-left.svg" alt="Anterior" width="16" height="16" onerror="this.onerror=null;this.src='icons/chevron-left.svg'">
+                <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/chevron-left.svg" alt="Anterior" width="16" height="16" onerror="this.onerror=null;this.src='icons/chevron-left.svg'">
               </button>
               <select id="arch-select" title="Escolher arquétipo"></select>
               <button class="btn fx-trans fx-press ring" id="arch-next" title="Próximo">
-<img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/chevron-right.svg" alt="Próximo" width="16" height="16" onerror="this.onerror=null;this.src='icons/chevron-right.svg'">
+                <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/chevron-right.svg" alt="Próximo" width="16" height="16" onerror="this.onerror=null;this.src='icons/chevron-right.svg'">
               </button>
             </div>
             <iframe id="arch-frame" title="Archetype Core" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
@@ -529,13 +536,13 @@
     /* Ripple */
     function addRipple(el) {
       if (!el) return;
-      if (!el.querySelector('.ripple')) { const slot = document.createElement('span'); slot.className = 'ripple'; el.appendChild(slot); }
-      el.addEventListener('pointerdown', (ev) => {
-        const host = el.querySelector('.ripple'); if (!host) return;
-        const dot = document.createElement('i');
-        const rect = el.getBoundingClientRect(); const x = ev.clientX - rect.left; const y = ev.clientY - rect.top;
-        dot.style.left = x + 'px'; dot.style.top = y + 'px'; host.appendChild(dot); setTimeout(() => dot.remove(), 650);
-      }, { passive: true });
+      // Ensure a ripple host exists on the element. The global ripple handler will create dots on pointerdown.
+      if (!el.querySelector('.ripple')) {
+        const slot = document.createElement('span');
+        slot.className = 'ripple';
+        el.appendChild(slot);
+      }
+      // Do not attach individual pointerdown events here; ripple will be handled globally.
     }
 
     /* Toast */
@@ -722,6 +729,20 @@
 
     /* Apply ripple */
     $$('button').forEach(addRipple);
+    // Move the arquétipos circle below the menu in the home view after initialization
+    (function() {
+      try {
+        const home = document.getElementById('v-home');
+        if (!home) return;
+        const arch = home.querySelector('.arch-container');
+        const cards = home.querySelector('.cards');
+        if (arch && cards) {
+          cards.insertAdjacentElement('afterend', arch);
+        }
+      } catch (e) {
+        console.warn('Falha ao reposicionar arquétipo:', e);
+      }
+    })();
     const obs = new MutationObserver((muts) => { muts.forEach(m => m.addedNodes && m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches?.('button')) addRipple(n); n.querySelectorAll?.('button').forEach(addRipple); } })) });
     obs.observe(document.body, { childList: true, subtree: true });
 
@@ -1015,21 +1036,23 @@
           <div class="title">${(a.title || 'App')}</div>
           <div class="tools">
             <button class="btn ring fx-trans fx-press" data-act="min" title="Minimizar">
-<img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/minus.svg" alt="Minimizar" width="14" height="14" onerror="this.onerror=null;this.src='icons/minus.svg'">
+              <img data-icon="minus" alt="Minimizar" width="14" height="14">
               <span class="ripple"></span>
             </button>
             <button class="btn ring fx-trans fx-press" data-act="ref" title="Recarregar">
-<img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/arrow-rotate-right.svg" alt="Recarregar" width="14" height="14" onerror="this.onerror=null;this.src='icons/arrow-rotate-right.svg'">
+              <img data-icon="arrow-rotate-right" alt="Recarregar" width="14" height="14">
               <span class="ripple"></span>
             </button>
             <button class="btn ring fx-trans fx-press" data-act="close" title="Fechar">
-<img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/xmark.svg" alt="Fechar" width="14" height="14" onerror="this.onerror=null;this.src='icons/xmark.svg'">
+              <img data-icon="xmark" alt="Fechar" width="14" height="14">
               <span class="ripple"></span>
             </button>
           </div>
         </div>
         <iframe src="${url || 'about:blank'}" allow="autoplay; clipboard-read; clipboard-write; picture-in-picture; fullscreen"></iframe>`;
-      stackWrap.prepend(card); card.querySelectorAll('.btn').forEach(addRipple);
+      // Prepend the session card and apply icons for dynamic buttons
+      stackWrap.prepend(card);
+      applyIcons();
       card.querySelector('[data-act=min]').onclick = () => { card.classList.toggle('min'); updateDock(); };
       card.querySelector('[data-act=ref]').onclick = () => { const fr = card.querySelector('iframe'); try { fr.contentWindow.location.reload() } catch { fr.src = fr.src } };
       card.querySelector('[data-act=close]').onclick = () => { card.remove(); updateDock(); };
