@@ -116,10 +116,17 @@
       display: none;
     }
 
-    /* Esconde a grade de cards na Home */
-    #v-home .cards { display: none !important; }
+    /* Esconde a grade de cards na Home e abre espaço para o feed de IA */
+    #v-home .cards {
+      display: none !important;
+    }
 
-    /* Área de texto/respostas da IA */
+    /* O feed de IA na Home foi substituído pelo preview laranja; esconda o feed original */
+    #v-home #iaFeed {
+      display: none !important;
+    }
+
+    /* Estiliza o feed de mensagens da IA em formato de conversa */
     #iaFeed {
       margin: 12px auto 0;
       max-width: 820px;
@@ -130,11 +137,32 @@
       padding: 12px;
       font-size: 14px;
       line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    #iaFeed .msg { margin: 8px 0; }
-    #iaFeed .msg.user { opacity:.9; }
-    #iaFeed .msg.ai { font-weight:700; }
-    #iaFeed .status { color: var(--mut); font-size: 12px; }
+    #iaFeed .msg {
+      margin: 0;
+      padding: 8px 12px;
+      border-radius: 16px;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+    #iaFeed .msg.user {
+      align-self: flex-end;
+      background: rgba(255,255,255,0.1);
+      border-radius: 16px 16px 0 16px;
+    }
+    #iaFeed .msg.ai {
+      align-self: flex-start;
+      background: rgba(57,255,182,0.12);
+      border-radius: 16px 16px 16px 0;
+    }
+    #iaFeed .status {
+      color: var(--mut);
+      font-size: 12px;
+      align-self: center;
+    }
 
     /* ===== Apps Page customizations ===== */
     /* Estilizar botão de upload de HTML local para destaque */
@@ -248,8 +276,12 @@
     /* Permite redimensionar a altura do iframe dentro das sessões arrastando o canto inferior esquerdo */
     .session { position: relative; }
     .session .resize-handle {
-      position: absolute; left: 8px; bottom: 8px;
-      width: 16px; height: 16px; cursor: ns-resize;
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      width: 16px;
+      height: 16px;
+      cursor: ns-resize;
       border-radius: 4px;
       background: rgba(255,255,255,.15);
       border: 1px solid rgba(255,255,255,.25);
@@ -278,7 +310,8 @@
       align-items: center;
       gap: 8px;
       justify-content: center;
-      margin-top: 24px;
+      /* Dá mais espaço do topo, relativo à altura da viewport */
+      margin-top: 5vh;
     }
     .arch-circle {
       position: relative;
@@ -455,10 +488,200 @@
     .modal .panel { width: min(720px, 92vw); background: var(--surface-strong); border: var(--bd); border-radius: 16px; box-shadow: var(--shadow); padding: 16px }
     .kbd { border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); padding: 2px 6px; border-radius: 6px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px }
 
-    /* ===== REVO view styling ===== */
-    /* Remove default padding for the new Revo section and ensure the iframe fills the space */
-    #v-revo { padding: 0; }
-    #v-revo iframe { width: 100%; height: 100%; border: 0; background: transparent; }
+    /* ===== Chat (Dual • Chat) ===== */
+    /* Configuração da seção de chat */
+    #v-chat {
+      padding: 0;
+      /* Não defina display aqui; ele será controlado pela classe .view e .active */
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Certifique-se de que a seção de chat seja exibida somente quando ativa.
+       A classe .view define display:none; quando .active é adicionada, tornamos flex para layout vertical. */
+    #v-chat.view.active, #v-chat.active {
+      display: flex;
+    }
+    #chatFeed {
+      /* Mantenha um tamanho mínimo para que mensagens apareçam mesmo sem altura flex */
+      min-height: 120px;
+      overflow-y: auto;
+      max-height: 46svh;
+      background: var(--surface);
+      border: var(--bd);
+      border-radius: var(--r2);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #chatFeed .msg {
+      max-width: 75%;
+      margin: 0;
+      padding: 8px 12px;
+      border-radius: 16px;
+      word-wrap: break-word;
+    }
+    #chatFeed .msg.user {
+      align-self: flex-end;
+      background: rgba(255,255,255,0.10);
+      border-radius: 16px 16px 0 16px;
+    }
+    #chatFeed .msg.ai {
+      align-self: flex-start;
+      background: rgba(57,255,182,0.12);
+      border-radius: 16px 16px 16px 0;
+    }
+    #chatFeed .msg.status {
+      align-self: center;
+      color: var(--mut);
+      font-size: 12px;
+    }
+    /* O formulário #chatForm e o campo #chatInput foram removidos.  O envio
+       de mensagens é feito exclusivamente pelo overlay de texto fixo. */
+    #msgPreview {
+      position: fixed;
+      left: 14px;
+      right: 14px;
+      bottom: calc(var(--tabsH) + 20px + env(safe-area-inset-bottom, 0));
+      background: var(--warn);
+      color: #0b0f14;
+      border-radius: 18px;
+      padding: 10px 14px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: var(--shadow);
+      z-index: 95;
+      cursor: pointer;
+      display: none;
+  /* Limite de altura para o preview; evita estourar o layout e permite arrastar no chat */
+  max-height: 33px;
+  overflow: hidden;
+    }
+    /* Ajuste para preview quando nav está na lateral direita */
+    body.nav-right #msgPreview {
+      right: calc(88px + 14px);
+      bottom: 14px;
+    }
+
+    /* ===== Overlay de entrada rápida na Home ===== */
+    /* Removido: o botão #homeInputToggle não é mais utilizado; os controles
+       de texto/voz são representados pelas bolinhas de ação. */
+    #homeInputOverlay {
+      position: fixed;
+      left: 14px;
+      right: 14px;
+      bottom: calc(var(--tabsH) + env(safe-area-inset-bottom, 0));
+      background: var(--surface-strong);
+      border-radius: 18px 18px 0 0;
+      border: var(--bd);
+      padding: 12px;
+      box-shadow: var(--shadow);
+      z-index: 97;
+      display: none;
+    }
+    #homeInputOverlay form {
+      display: flex;
+      gap: 8px;
+    }
+    #homeInputOverlay input {
+      flex: 1;
+      background: #0f1426;
+      color: var(--fg);
+      border: var(--bd);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 18px;
+    }
+    #homeInputOverlay input::placeholder {
+      color: var(--mut);
+    }
+    #homeInputOverlay button {
+      background: var(--ok);
+      border: none;
+      border-radius: 12px;
+      padding: 0 16px;
+      color: #0b0f14;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Ajustes quando a navegação está na direita: reposicione o botão e overlay para não colidir com a barra */
+    /* body.nav-right #homeInputToggle removido */
+    body.nav-right #homeInputOverlay {
+      left: 14px;
+      right: calc(88px + 14px);
+      bottom: calc(14px + env(safe-area-inset-bottom, 0));
+    }
+
+    /* ===== Botões duplos (texto/voz) na Home ===== */
+    /* Variante lateral empilhada: os botões ficam no canto direito,
+       empilhados um sobre o outro (coluna) para indicar ações distintas
+       (texto e voz).  Ajustamos a posição para cima da barra de
+       navegação. */
+    .home-btns {
+      position: fixed;
+      right: 14px;
+      left: auto;
+      transform: none;
+      bottom: calc(var(--tabsH) + 30px + env(safe-area-inset-bottom, 0));
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      z-index: 97;
+    }
+    .home-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 21px;
+      background: var(--surface);
+      border: var(--bd);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .home-btn img {
+      width: 20px;
+      height: 20px;
+    }
+    .home-btn.active {
+      background: var(--ok);
+      color: #0b0f14;
+    }
+    /* Layout da barra de abas no modo nav-right */
+    body.nav-right nav.tabbar {
+      left: auto;
+      right: 0;
+      top: var(--hdrH);
+      bottom: env(safe-area-inset-bottom, 0);
+      width: 78px;
+      height: auto;
+      display: flex;
+      justify-content: flex-start;
+      padding: 6px 6px;
+    }
+    body.nav-right .tabbar .inner {
+      width: 100%;
+      max-width: none;
+      flex-direction: column;
+      align-items: center;
+    }
+    body.nav-right .tab {
+      flex: none;
+      width: 100%;
+      margin: 4px 0;
+    }
+    body.nav-right main {
+      padding-right: calc(78px + 14px);
+      padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px);
+    }
   </style>
 </head>
 <body>
@@ -552,9 +775,9 @@
               <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/yin-yang.svg" alt="Arquétipo" width="20" height="20" onerror="this.onerror=null;this.src='icons/yin-yang.svg'">
               <span>Arquétipo</span>
             </button>
-            <button data-nav="revo">
-              <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/globe.svg" alt="Revo" width="20" height="20" onerror="this.onerror=null;this.src='icons/globe.svg'">
-              <span>Revo</span>
+            <button data-nav="chat">
+              <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/comments.svg" alt="Chat" width="20" height="20" onerror="this.onerror=null;this.src='icons/comments.svg'">
+              <span>Chat</span>
             </button>
           <button data-audio="true" id="archAudioBtn">
             <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/microphone-lines.svg" alt="Áudio" width="20" height="20" onerror="this.onerror=null;this.src='icons/microphone-lines.svg'">
@@ -562,7 +785,7 @@
           </button>
           </div>
         </div>
-        <!-- Área de respostas e status da IA na Home -->
+        <!-- Feed de texto da IA -->
         <div id="iaFeed" aria-live="polite" aria-atomic="false">
           <div class="status">Toque a bolinha para falar com a IA.</div>
         </div>
@@ -619,7 +842,7 @@
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <!-- Removemos a busca e o sort. Agora apenas a opção de abrir dentro e o botão para mostrar locais -->
               <label class="mut" style="display:inline-flex;gap:6px;align-items:center">
-                <input id="openInside" type="checkbox" checked /> abrir dentro
+                <input id="openInside" type="checkbox" /> abrir dentro
               </label>
               <button id="btnToggleLocal" class="btn fx-trans fx-press ring">
                 <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg" alt="Locais" width="16" height="16" onerror="this.onerror=null;this.src='icons/folder-open.svg'" style="margin-right:4px">
@@ -680,6 +903,16 @@
             <input id="sk" class="input ring" placeholder="sk-or-v1-…" />
             <button id="saveSK" class="btn fx-trans fx-press ring">Salvar<span class="ripple"></span></button>
           </div>
+
+          <!-- Modelo personalizado e treino -->
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+            <input id="customModel" class="input ring" placeholder="Modelo personalizado (ex: openai/gpt-4-custom)" style="flex:1" />
+            <button id="addModel" class="btn fx-trans fx-press ring">Adicionar Modelo<span class="ripple"></span></button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+            <input id="trainingFile" type="file" accept=".json,.txt,.dxt" class="input ring" style="max-width:260px" />
+            <span class="mut" style="font-size:11px">Treinamento (DXT)</span>
+          </div>
         </div>
 
           <!-- Tema e Fundo personalizados -->
@@ -722,9 +955,6 @@
                  um seletor de voz e um botão de teste.  Essa grade será
                  preenchida dinamicamente pelo código em initVoices(). -->
             <div id="voicesWrap" style="display:grid; gap:10px"></div>
-            <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
-              <button id="btnSaveVoicePresets" class="btn fx-trans fx-press ring">Salvar Presets PT-BR<span class="ripple"></span></button>
-            </div>
 
           <!-- Preferências de Performance -->
           <div class="card fx-trans fx-lift" style="display:block">
@@ -763,10 +993,10 @@
       </div>
     </section>
 
-    <!-- REVO (Infodose Hub Ultra) -->
-    <section id="v-revo" class="view">
-      <!-- Carrega o conteúdo do Hub Ultra modificado via iframe.  O arquivo index-100_revo_mod.html está no mesmo diretório -->
-      <iframe id="revoEmbed" src="index-100_revo_mod.html" allow="autoplay; clipboard-read; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="no-referrer"></iframe>
+    <!-- CHAT (Dual • Chat) -->
+    <section id="v-chat" class="view">
+      <!-- Feed de mensagens do chat -->
+      <div id="chatFeed"></div>
     </section>
   </main>
 
@@ -790,13 +1020,34 @@
 <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/brain.svg" alt="Brain" width="18" height="18" onerror="this.onerror=null;this.src='icons/brain.svg'">
         <span style="display:none">Brain</span><span class="ripple"></span>
       </button>
-      <!-- Botão da nova aba Revo -->
-      <button class="tab fx-trans fx-press ring" data-nav="revo">
-<img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/globe.svg" alt="Revo" width="18" height="18" onerror="this.onerror=null;this.src='icons/globe.svg'">
-        <span style="display:none">Revo</span><span class="ripple"></span>
+      <!-- Botão da nova aba Chat -->
+      <button class="tab fx-trans fx-press ring" data-nav="chat">
+<img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/comments.svg" alt="Chat" width="18" height="18" onerror="this.onerror=null;this.src='icons/comments.svg'">
+        <span style="display:none">Chat</span><span class="ripple"></span>
       </button>
     </div>
   </nav>
+  <!-- Preview da última mensagem recebida (aparece na home e leva ao chat) -->
+  <div id="msgPreview"></div>
+
+  <!-- Controles de texto e voz empilhados acima da barra de navegação -->
+  <div id="homeButtons" class="home-btns">
+    <button id="homeTextBtn" class="home-btn">
+      <img src="HubAdlineChat.png" alt="Texto" width="20" height="20" onerror="this.onerror=null;this.src='icons/pen-to-square.svg'">
+    </button>
+    <button id="homeVoiceBtn" class="home-btn">
+      <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/microphone.svg" alt="Voz" width="20" height="20" onerror="this.onerror=null;this.src='icons/microphone.svg'">
+    </button>
+  </div>
+  <!-- Overlay de input para envio rápido de mensagens na Home -->
+  <div id="homeInputOverlay">
+    <form id="homeInputForm" autocomplete="off">
+      <input id="homeInput" type="text" placeholder="Escreva aqui…" autocomplete="off" />
+      <button type="submit">
+        <img src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/paper-plane.svg" alt="Enviar" width="18" height="18" onerror="this.onerror=null;this.src='icons/paper-plane.svg'">
+      </button>
+    </form>
+  </div>
 
   <!-- HELP MODAL -->
   <div id="modalHelp" class="modal" aria-hidden="true">
@@ -811,7 +1062,7 @@
         <li><span class="kbd">g</span> then <span class="kbd">a</span> → Apps</li>
         <li><span class="kbd">g</span> then <span class="kbd">s</span> → Stack</li>
         <li><span class="kbd">g</span> then <span class="kbd">b</span> → Brain</li>
-        <li><span class="kbd">g</span> then <span class="kbd">r</span> → Revo</li>
+        <li><span class="kbd">g</span> then <span class="kbd">r</span> → Chat</li>
         <li><span class="kbd">Ctrl / Cmd</span> + <span class="kbd">K</span> → Busca</li>
         <li><span class="kbd">Ctrl / Cmd</span> + <span class="kbd">S</span> → Baixar este HTML</li>
       </ul>
@@ -920,25 +1171,29 @@
         bgContainer.innerHTML = '';
         return;
       }
-      // Carregar dados do fundo. Pode ser imagem (data URL) ou vídeo via URL temporário (ObjectURL).
-      const kind = LS.get('uno:bgKind','');
-      const data = LS.get('uno:bg','');
-      const url  = LS.get('uno:bgUrl','');
+      // Carregar dados do fundo
+      const bgData = LS.get('uno:bg', '');
       bgContainer.innerHTML = '';
-      if (kind === 'video-url' && url) {
+      if (!bgData) return;
+      // Determine se é vídeo ou imagem
+      if (/^data:video\//.test(bgData)) {
         const vid = document.createElement('video');
-        vid.src = url; vid.autoplay = true; vid.loop = true; vid.muted = true; vid.playsInline = true;
-        vid.style.width='100%'; vid.style.height='100%'; vid.style.objectFit='cover';
+        vid.src = bgData;
+        vid.autoplay = true;
+        vid.loop = true;
+        vid.muted = true;
+        vid.playsInline = true;
+        vid.style.width = '100%';
+        vid.style.height = '100%';
+        vid.style.objectFit = 'cover';
         bgContainer.appendChild(vid);
-      } else if (/^data:video\//.test(data)) {
-        const vid = document.createElement('video');
-        vid.src = data; vid.autoplay = true; vid.loop = true; vid.muted = true; vid.playsInline = true;
-        vid.style.width='100%'; vid.style.height='100%'; vid.style.objectFit='cover';
-        bgContainer.appendChild(vid);
-      } else if (data) {
+      } else {
         const img = document.createElement('img');
-        img.src = data; img.alt = '';
-        img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover';
+        img.src = bgData;
+        img.alt = '';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
         bgContainer.appendChild(img);
       }
     }
@@ -964,9 +1219,9 @@
       const archList = [ 'Luxara','Rhea','Aion','Atlas','Nova','Genus','Lumine','Kaion','Kaos','Horus','Elysha','Serena' ];
       function populateVoices() {
         let voices = speechSynthesis.getVoices();
-        // Prioriza vozes em Português (pt). Se não houver, utiliza todas as vozes disponíveis.
-        const pt = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('pt'));
-        voices = pt.length ? pt : voices;
+        // Filtrar por idiomas suportados (Português e Inglês) se disponível
+        const filtered = voices.filter(v => v.lang && (v.lang.startsWith('pt') || v.lang.startsWith('en')));
+        voices = filtered.length ? filtered : voices;
         const saved = LS.get('infodose:voices', {}) || {};
         // Se ainda não houver vozes salvas, defina um mapeamento padrão
         if (Object.keys(saved).length === 0 && voices.length) {
@@ -1024,42 +1279,23 @@
       window.speechSynthesis.onvoiceschanged = () => populateVoices();
     }
 
-  // Gera mapeamento de voz + variação (pitch/rate) por arquétipo (PT-BR). Usado para presets PT.
-  function generatePtPresets() {
-    const archList = [ 'Luxara','Rhea','Aion','Atlas','Nova','Genus','Lumine','Kaion','Kaos','Horus','Elysha','Serena' ];
-    const all = speechSynthesis.getVoices();
-    const pt = all.filter(v => v.lang && v.lang.toLowerCase().startsWith('pt'));
-    const bank = pt.length ? pt : all;
-    const presets = {};
-    let idx = 0;
-    archList.forEach((name,i)=>{
-      const v = bank[idx % bank.length];
-      const pitch = 0.9 + ((i % 4) * 0.1);
-      const rate  = 0.95 + ((i % 3) * 0.05);
-      presets[name] = { name: v?.name || '', pitch: Math.min(2, pitch), rate: Math.min(2, rate) };
-      idx++;
-    });
-    return presets;
-  }
-  // Salva os presets PT-BR ao clicar no botão de presets
-  (function bindSavePresets(){
-    const btn = document.getElementById('btnSaveVoicePresets');
-    if(!btn) return;
-    btn.onclick = ()=>{
-      const p = generatePtPresets();
-      LS.set('infodose:voicePresets', p);
-      toast('Presets PT-BR salvos', 'ok');
-    };
-  })();
-
     // Pronuncia o nome do arquétipo usando a voz selecionada
     function speakArchetype(name) {
       try {
-        const key = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+        const archName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+        const saved = LS.get('infodose:voices', {});
         const voices = speechSynthesis.getVoices();
-        let fallback = voices.find(v => v.lang?.toLowerCase().startsWith('pt')) || voices[0];
-        const utter = new SpeechSynthesisUtterance(`Olá, eu sou ${key}`);
-        applyUtterPrefs(key, utter, fallback);
+        let voice = null;
+        if (saved && saved[archName]) {
+          voice = voices.find(v => v.name === saved[archName]);
+        }
+        if (!voice) {
+          voice = voices.find(v => v.lang && (v.lang.startsWith('pt') || v.lang.startsWith('en')));
+        }
+        if (!voice && voices.length) voice = voices[0];
+        if (!voice) return;
+        const utter = new SpeechSynthesisUtterance(`Olá, eu sou ${archName}`);
+        utter.voice = voice;
         speechSynthesis.cancel();
         speechSynthesis.speak(utter);
       } catch (e) {}
@@ -1071,28 +1307,25 @@
     function speakWithActiveArch(text) {
       try {
         const select = document.getElementById('arch-select');
-        let base = (select?.value || '').replace(/\.html$/i, '');
+        let archFile = select ? select.value || '' : '';
+        let base = archFile.replace(/\.html$/i, '');
         const key = base.charAt(0).toUpperCase() + base.slice(1).toLowerCase();
+        const saved = LS.get('infodose:voices', {}) || {};
         const voices = speechSynthesis.getVoices();
-        let fallback = voices.find(v => v.lang?.toLowerCase().startsWith('pt')) || voices[0];
+        let voice = null;
+        if (saved[key]) {
+          voice = voices.find(v => v.name === saved[key]);
+        }
+        if (!voice) {
+          voice = voices.find(v => v.lang && (v.lang.startsWith('pt') || v.lang.startsWith('en')));
+        }
+        if (!voice && voices.length) voice = voices[0];
+        if (!voice) return;
         const utter = new SpeechSynthesisUtterance(text);
-        applyUtterPrefs(key, utter, fallback);
+        utter.voice = voice;
         speechSynthesis.cancel();
         speechSynthesis.speak(utter);
       } catch (e) {}
-    }
-
-    // Aplica preferências de voz (voz, pitch, rate) baseadas nos presets PT-BR para o arquétipo.
-    function applyUtterPrefs(archKey, utter, fallbackVoice){
-      const map = LS.get('infodose:voicePresets', {});
-      const voices = speechSynthesis.getVoices();
-      let chosen = fallbackVoice;
-      if (map[archKey]?.name) {
-        chosen = voices.find(v => v.name === map[archKey].name) || chosen;
-      }
-      if (chosen) utter.voice = chosen;
-      if (map[archKey]?.pitch) utter.pitch = map[archKey].pitch;
-      if (map[archKey]?.rate)  utter.rate  = map[archKey].rate;
     }
 
     // Exibe uma mensagem dentro do círculo do arquétipo. A mensagem desaparece após alguns segundos.
@@ -1238,9 +1471,16 @@
 
     /* ===================== Navegação + Estado ===================== */
     function nav(key) {
-      // Adicionamos 'revo' à lista de abas para suportar a nova seção
-      const tabs = ['home', 'apps', 'stack', 'brain', 'revo'];
-      tabs.forEach(k => { $('#v-' + k).classList.toggle('active', k === key); $(`.tab[data-nav="${k}"]`).classList.toggle('active', k === key); });
+      // Remapeia a antiga aba 'revo' para 'chat'
+      if (key === 'revo') key = 'chat';
+      // Adicionamos 'chat' à lista de abas para suportar a nova seção
+      const tabs = ['home', 'apps', 'stack', 'brain', 'chat'];
+      tabs.forEach(k => {
+        const viewEl = document.getElementById('v-' + k);
+        if (viewEl) viewEl.classList.toggle('active', k === key);
+        const tabEl = document.querySelector(`.tab[data-nav="${k}"]`);
+        if (tabEl) tabEl.classList.toggle('active', k === key);
+      });
       LS.set('uno:lastTab', key);
       // Quando entrar na aba Home, apresente mensagem de saudação / última sessão
       if (key === 'home') {
@@ -1257,29 +1497,7 @@
         // Atualize também os status quando entrar no Home
         try { updateHomeStatus(); } catch {}
       }
-      // Quando entrar na aba Revo, envie a lista de apps ao iframe via postMessage
-      if (key === 'revo') {
-        try {
-          const apps = RAW && Array.isArray(RAW.apps) ? RAW.apps : [];
-          const iframe = document.getElementById('revoEmbed');
-          if (iframe) {
-            // If iframe already loaded, send immediately
-            const send = () => {
-              if (iframe.contentWindow) {
-                iframe.contentWindow.postMessage({ type: 'apps', apps }, '*');
-              }
-            };
-            // Always send a message after a tiny delay in case the frame is still initializing
-            setTimeout(send, 100);
-            // Also send again once the iframe loads
-            iframe.removeEventListener('load', iframe._sendApps);
-            iframe._sendApps = send;
-            iframe.addEventListener('load', send, { once: true });
-          }
-        } catch(e) {
-          console.warn('Falha ao enviar apps ao Revo:', e);
-        }
-      }
+      // Nenhuma ação especial ao entrar na aba de chat por enquanto
 
       // Falar uma frase curta ao trocar de aba, usando a voz do arquétipo ativo
       try {
@@ -1290,13 +1508,20 @@
           case 'apps': phrase = 'Abrindo apps'; break;
           case 'stack': phrase = 'Abrindo stack'; break;
           case 'brain': phrase = 'Abrindo usuário'; break;
-          case 'revo': phrase = 'Abrindo revo'; break;
+          case 'chat': phrase = 'Abrindo chat'; break;
           default: phrase = '';
         }
         if (phrase) {
           speakWithActiveArch(phrase);
           showArchMessage(phrase, type);
         }
+        // Mostrar o preview laranja somente na Home; escondê-lo nas outras abas
+        try {
+          const prev = document.getElementById('msgPreview');
+          if (prev) {
+            prev.style.display = (key === 'home' && prev.textContent) ? 'block' : 'none';
+          }
+        } catch (e) { console.warn(e); }
       } catch (e) {}
     }
 
@@ -1307,18 +1532,6 @@
       const menu = document.getElementById('archMenu');
       if (!menu) return;
       menu.classList.toggle('show');
-    }
-
-    // Função auxiliar para adicionar mensagens ao feed de IA.
-    // 'type' pode ser 'user', 'ai' ou 'status'; o texto será anexado e o feed rolado ao final.
-    function feedPush(type, text){
-      const box = document.getElementById('iaFeed');
-      if(!box) return;
-      const div = document.createElement('div');
-      div.className = 'msg ' + (type || 'status');
-      div.textContent = text;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
     }
 
     /**
@@ -1365,32 +1578,83 @@
      * @param {string} sk Chave da API do OpenRouter
      * @param {string} model Modelo selecionado
      */
+
+    // Insere mensagens no feed de IA da Home. Mantém somente as últimas 10 entradas.
+    function feedPush(type, text) {
+      // Adiciona mensagem ao feed de IA se existir (mantido para compatibilidade)
+      const box = document.getElementById('iaFeed');
+      if (box) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + (type || 'status');
+        div.textContent = text;
+        box.appendChild(div);
+        const msgs = box.querySelectorAll('.msg');
+        const limit = 10;
+        if (msgs.length > limit) {
+          box.removeChild(msgs[0]);
+        }
+        box.scrollTop = box.scrollHeight;
+      }
+      // Envia a mensagem também ao feed de chat e atualiza o preview
+      try {
+        chatPush(type, text);
+        if (type === 'ai') updatePreview(text);
+      } catch (e) { console.warn(e); }
+    }
+    // Função auxiliar para adicionar mensagens ao feed de chat
+    function chatPush(type, text) {
+      const feed = document.getElementById('chatFeed');
+      if (!feed) return;
+      const div = document.createElement('div');
+      div.className = 'msg ' + (type || 'status');
+      div.textContent = text;
+      feed.appendChild(div);
+      const msgs = feed.querySelectorAll('.msg');
+      const limit = 50;
+      if (msgs.length > limit) {
+        feed.removeChild(msgs[0]);
+      }
+      feed.scrollTop = feed.scrollHeight;
+    }
+    // Atualiza o preview laranja com a última resposta da IA
+    function updatePreview(text) {
+      const prev = document.getElementById('msgPreview');
+      if (!prev) return;
+      prev.textContent = text.replace(/\s+/g, ' ').trim();
+      // Exibe o preview apenas se a página Home estiver ativa.  Caso
+      // contrário, mantenha-o oculto para não interferir na visualização
+      // das outras abas (chat, apps etc.).
+      const homeView = document.getElementById('v-home');
+      const isHomeActive = homeView && homeView.classList.contains('active');
+      prev.style.display = isHomeActive ? 'block' : 'none';
+    }
     function startSpeechConversation(userName, sk, model) {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        showArchMessage('Reconhecimento de fala não suportado.', 'err');
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showArchMessage('Reconhecimento de fala não suportado neste navegador.', 'err');
         return;
       }
-      const recognition = new SR();
+      const recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
       recognition.onstart = () => {
         showArchMessage('Estou ouvindo…', 'ok');
-        feedPush('status','🎙️ Ouvindo…');
+        feedPush('status', '🎙️ Ouvindo…');
       };
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript.trim();
         if (transcript) {
-          feedPush('user','Você: ' + transcript);
-          showArchMessage('Pulso enviado. Recebendo intenção…','ok');
-          feedPush('status','⚡ Pulso enviado · recebendo intenção…');
+          feedPush('user', 'Você: ' + transcript);
+          showArchMessage('Pulso enviado. Recebendo intenção…', 'ok');
+          feedPush('status', '⚡ Pulso enviado · recebendo intenção…');
           handleUserMessage(transcript, userName, sk, model);
         }
       };
       recognition.onerror = (e) => {
+        console.error('Erro no reconhecimento de fala:', e);
         showArchMessage('Erro no reconhecimento de fala.', 'err');
-        feedPush('status','❌ Erro no reconhecimento de fala.');
+        feedPush('status', '❌ Erro no reconhecimento de fala.');
       };
       recognition.start();
     }
@@ -1405,9 +1669,7 @@
      * @param {string} model Modelo de IA
      */
     async function handleUserMessage(text, userName, sk, model) {
-      // Exibe no feed o texto do usuário e prepara prompt para IA
-      showArchMessage('Você: ' + text, 'ok');
-      feedPush('user','Você: ' + text);
+      // A mensagem do usuário já foi adicionada ao feed no evento onresult do reconhecimento de fala
       // Monta prompt incluindo o nome do usuário para personalização
       const prompt = `${userName} disse: ${text}`;
       // Envia ao modelo de IA
@@ -1419,7 +1681,14 @@
         reply = 'Desculpe, não consegui responder no momento.';
       }
       if (reply) {
-        feedPush('ai', 'Dual: ' + reply);
+        // Determine o arquétipo ativo para prefixar as respostas no feed
+        let archName = 'Dual';
+        try {
+          const select = document.getElementById('arch-select');
+          let base = (select?.value || '').replace(/\.html$/i, '');
+          archName = base.charAt(0).toUpperCase() + base.slice(1).toLowerCase();
+        } catch (e) {}
+        feedPush('ai', archName + ': ' + reply);
         showArchMessage(reply, 'ok');
         try { speakWithActiveArch(reply); } catch {}
       }
@@ -1491,29 +1760,73 @@
         }
       });
       }
+      // Clique no preview direciona ao chat
+      const mp = document.getElementById('msgPreview');
+      if (mp) mp.addEventListener('click', () => nav('chat'));
+
+      /* Formulário de chat removido: a captura de mensagens é feita via
+         overlay de entrada. */
+
+      // Inicialização dos botões de texto e voz na Home (overlay).  Dois botões
+      // empilhados acima da barra: o superior inicia reconhecimento de voz e
+      // o inferior mostra o campo de texto. O envio do formulário do
+      // overlay dispara a mesma lógica do chat padrão.
+      const textBtn = document.getElementById('homeTextBtn');
+      const voiceBtn = document.getElementById('homeVoiceBtn');
+      const hiOverlay = document.getElementById('homeInputOverlay');
+      const hiForm = document.getElementById('homeInputForm');
+      const hiInput = document.getElementById('homeInput');
+      // Exibe/oculta o overlay ao tocar no botão de texto
+      if (textBtn && hiOverlay && hiForm && hiInput) {
+        textBtn.addEventListener('click', () => {
+          const show = hiOverlay.style.display !== 'block';
+          hiOverlay.style.display = show ? 'block' : 'none';
+          textBtn.classList.toggle('active', show);
+          if (show) setTimeout(() => hiInput.focus(), 60);
+        });
+        hiForm.addEventListener('submit', (ev) => {
+          ev.preventDefault();
+          const msg = hiInput.value.trim();
+          if (!msg) return;
+          feedPush('user', 'Você: ' + msg);
+          showArchMessage('Pulso enviado. Recebendo intenção…', 'ok');
+          feedPush('status', '⚡ Pulso enviado · recebendo intenção…');
+          const userName = (localStorage.getItem('dual.name') || localStorage.getItem('infodose:userName') || '').trim();
+          const sk = (localStorage.getItem('dual.keys.openrouter') || localStorage.getItem('infodose:sk') || '').trim();
+          let mdl = LS.get('dual.openrouter.model');
+          if (!mdl) mdl = (localStorage.getItem('infodose:model') || '').trim() || 'openrouter/auto';
+          try { handleUserMessage(msg, userName, sk, mdl); } catch (e) { console.warn(e); }
+          hiInput.value = '';
+        });
+      }
+      // Inicia conversa por voz ao tocar no botão de voz
+      if (voiceBtn) {
+        voiceBtn.addEventListener('click', () => {
+          const userName = (localStorage.getItem('dual.name') || localStorage.getItem('infodose:userName') || '').trim();
+          const sk = (localStorage.getItem('dual.keys.openrouter') || localStorage.getItem('infodose:sk') || '').trim();
+          let mdl = LS.get('dual.openrouter.model');
+          if (!mdl) mdl = (localStorage.getItem('infodose:model') || '').trim() || 'openrouter/auto';
+          if (hiOverlay) hiOverlay.style.display = 'none';
+          if (typeof startSpeechConversation === 'function') {
+            startSpeechConversation(userName, sk, mdl);
+          }
+        });
+      }
     });
 
     // Helper: se a aba Revo estiver ativa, envia a lista atual de apps ao iframe.  
     function maybeSendAppsToRevo() {
-      try {
-        // Só envie se a aba Revo estiver visível
-        const view = document.getElementById('v-revo');
-        if (!view || !view.classList.contains('active')) return;
-        const iframe = document.getElementById('revoEmbed');
-        const apps = RAW && Array.isArray(RAW.apps) ? RAW.apps : [];
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({ type: 'apps', apps }, '*');
-        }
-      } catch (e) {
-        console.warn('Falha ao enviar apps ao Revo (maybe):', e);
-      }
+      // Revo foi substituído pelo Chat; nenhuma mensagem precisa ser enviada
+      return;
     }
     $$('.tab,[data-nav]').forEach(b => b.addEventListener('click', () => nav(b.dataset.nav || 'home')));
     $('#btnBack').onclick = () => { try { history.length > 1 && history.back() } catch { } };
     $('#btnBrain').onclick = () => nav('brain');
 
     // Restaurar última aba
-    const last = LS.get('uno:lastTab', 'home');
+    let last = LS.get('uno:lastTab', 'home');
+    // Se o último tab salvo for 'revo', redirecione para home para evitar páginas vazias
+    if (last === 'revo') last = 'home';
     nav(last);
     // Se a aba inicial for home, exibir saudação
     if (last === 'home') {
@@ -1527,7 +1840,7 @@
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#appSearch')?.focus(); return; }
       if (e.key.toLowerCase() === 'g') { gPressed = true; setTimeout(() => gPressed = false, 600); return; }
       if (!gPressed) return; const k = e.key.toLowerCase();
-      if (k === 'h') nav('home'); if (k === 'a') nav('apps'); if (k === 's') nav('stack'); if (k === 'b') nav('brain'); if (k === 'r') nav('revo'); gPressed = false;
+      if (k === 'h') nav('home'); if (k === 'a') nav('apps'); if (k === 's') nav('stack'); if (k === 'b') nav('brain'); if (k === 'r') nav('chat'); gPressed = false;
     });
 
     // Ajuda modal
@@ -1561,6 +1874,39 @@
         try { displayGreeting(); } catch (e) {}
         try { updateHomeStatus(); } catch {}
       };
+
+      // Permitir adicionar modelo personalizado
+      const addBtn = $('#addModel');
+      const customInput = $('#customModel');
+      if (addBtn && customInput) {
+        addBtn.onclick = () => {
+          const val = (customInput.value || '').trim();
+          if (!val) return;
+          const opt = document.createElement('option');
+          opt.value = val; opt.textContent = val;
+          sel.appendChild(opt);
+          sel.value = val;
+          LS.set('dual.openrouter.model', val);
+          customInput.value = '';
+          toast('Modelo adicionado', 'ok');
+        };
+      }
+      // Permitir carregamento de arquivo de treino
+      const trainInp = $('#trainingFile');
+      if (trainInp) {
+        trainInp.addEventListener('change', (ev) => {
+          const file = ev.target.files && ev.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              LS.set('dual.openrouter.training', { name: file.name, data: reader.result });
+              toast('Treinamento carregado', 'ok');
+            } catch (err) { console.error(err); toast('Erro ao carregar treino', 'err'); }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
     })();
 
     /* ===================== Inicialização do tema & personalização de fundo ===================== */
@@ -1587,38 +1933,20 @@
         upload.addEventListener('change', (e) => {
           const f = e.target.files && e.target.files[0];
           if (!f) return;
-          // Imagem pequena: pode ir em base64; Vídeo: usa ObjectURL (persistência até reload)
-          if (f.type.startsWith('video/')) {
-            const url = URL.createObjectURL(f);
-            LS.set('uno:bgKind','video-url');
-            LS.set('uno:bgUrl', url);
-            LS.set('uno:theme','custom');
-            if (sel) sel.value = 'custom';
-            applyTheme();
-            toast('Vídeo aplicado no background', 'ok');
-          } else {
-            const reader = new FileReader();
-            reader.onload = () => {
-              LS.set('uno:bg','' + reader.result);
-              LS.set('uno:bgKind','image-data');
-              LS.set('uno:theme','custom');
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              LS.set('uno:bg', reader.result);
+              LS.set('uno:theme', 'custom');
               if (sel) sel.value = 'custom';
               applyTheme();
-              toast('Imagem aplicada no background', 'ok');
-            };
-            reader.readAsDataURL(f);
-          }
+              toast('Fundo personalizado salvo', 'ok');
+              try { updateHomeStatus(); } catch {}
+            } catch (err) { console.error(err); toast('Erro ao salvar fundo', 'err'); }
+          };
+          reader.readAsDataURL(f);
         });
       }
-    })();
-
-    // Persistir preferência "Abrir dentro". Define o estado inicial a partir do localStorage e atualiza ao alterar.
-    (function initOpenInside(){
-      const chk = document.getElementById('openInside');
-      if(!chk) return;
-      const saved = LS.get('uno:openInside', true);
-      chk.checked = saved;
-      chk.addEventListener('change', () => LS.set('uno:openInside', chk.checked));
     })();
 
     /* ===================== Ícones inline (data SVG) ===================== */
@@ -1947,18 +2275,20 @@
         const handle = card.querySelector('.resize-handle');
         const iframe = card.querySelector('iframe');
         if(!handle || !iframe) return;
-        let startY=0, startH=0, dragging=false;
-        handle.addEventListener('pointerdown', (ev)=>{
-          dragging=true; startY = ev.clientY; startH = iframe.clientHeight;
+        let startY = 0, startH = 0, dragging = false;
+        handle.addEventListener('pointerdown', (ev) => {
+          dragging = true;
+          startY = ev.clientY;
+          startH = iframe.clientHeight;
           handle.setPointerCapture(ev.pointerId);
         });
-        handle.addEventListener('pointermove', (ev)=>{
+        handle.addEventListener('pointermove', (ev) => {
           if(!dragging) return;
           const dy = ev.clientY - startY;
           const h = Math.max(120, startH + dy);
           iframe.style.height = h + 'px';
         });
-        const stop=()=> dragging=false;
+        const stop = () => { dragging = false; };
         handle.addEventListener('pointerup', stop);
         handle.addEventListener('pointercancel', stop);
       })();
