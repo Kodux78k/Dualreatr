@@ -1,8 +1,8 @@
 {
-  "name": "Dual.Infodose Chat",
-  "short_name": "Dual Chat",
+  "name": "Dual.Infodose",
+  "short_name": "Dual Hub uno",
   "id": "/",
-  "start_url": "/index_clean_7_PWA_chat.html",
+  "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0b0f14",
