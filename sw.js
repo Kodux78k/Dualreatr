@@ -1,7 +1,7 @@
 
-const CACHE_NAME = 'dual-pwa-v1';
+const CACHE_NAME = 'dual-pwa-v2';
 const CORE = [
-  './index_clean_7_PWA_chat.html',
+  './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'
