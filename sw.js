@@ -1,12 +1,28 @@
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open('hub1-v1').then((c) => c.addAll([
-      '/', '/index.html', '/manifest.json'
-    ]))
-  );
+
+const CACHE_NAME = 'dual-pwa-v1';
+const CORE = [
+  './index_clean_7_PWA_chat.html',
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
+];
+self.addEventListener('install', (e)=>{
+  e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(CORE)));
+  self.skipWaiting();
 });
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((r) => r || fetch(e.request))
-  );
+self.addEventListener('activate', (e)=>{
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>k===CACHE_NAME?null:caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', (e)=>{
+  const req = e.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET') return;
+  if (url.origin === self.location.origin) {
+    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res=>{
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then(c=>c.put(req, copy));
+      return res;
+    }).catch(()=>caches.match('./index_clean_7_PWA_chat.html'))));
+  }
 });
