@@ -1,0 +1,40 @@
+{
+  "apps": [
+    {
+      "key": "apps",
+      "title": "Apps",
+      "icon": "folder-open",
+      "url": "about:blank"
+    },
+    {
+      "key": "brain",
+      "title": "Usu\u00e1rio",
+      "icon": "user",
+      "url": "about:blank"
+    },
+    {
+      "key": "chat",
+      "title": "Chat",
+      "icon": "comments",
+      "url": "about:blank"
+    },
+    {
+      "key": "store",
+      "title": "Loja",
+      "icon": "grid",
+      "url": "about:blank"
+    },
+    {
+      "key": "player",
+      "title": "Player",
+      "icon": "audio",
+      "url": "about:blank"
+    },
+    {
+      "key": "demo",
+      "title": "Demo App",
+      "icon": "bolt",
+      "url": "about:blank"
+    }
+  ]
+}
